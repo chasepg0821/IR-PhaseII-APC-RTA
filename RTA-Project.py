@@ -2,6 +2,8 @@ import os
 import tqdm
 import json
 import numpy as np
+from numpy import dot
+from numpy.linalg import norm
 import tensorflow as tf
 
 
@@ -12,6 +14,7 @@ class GlobalData():
         self.artists = {}
         self.playlists = {}
         self.albums = {}
+        self.test_playlists = {}
 
     def add_track(self, uri, track):
         entry = self.tracks.get(uri)
@@ -42,6 +45,7 @@ class Track():
         self.dur = track_info['duration_ms'] / 1000.0
         self.artist = track_info['artist_uri'].lstrip('spotify:artist:')
         self.album = track_info['album_uri'].lstrip('spotify:album:')
+        self.album = track_info['track_name'].lstrip('spotify:album:')
 
     def add_count(self):
         self.pop += 1.0
@@ -60,11 +64,20 @@ class Playlist():
         tensor = np.array(tensor)
         self.vector_rep = tf.reduce_sum(tensor, 0).numpy()
 
+    def get_test_vector(self, gd):
+        if len(self.tracks) < 10:
+            return None
+        tensor = []
+        for uri in self.tracks[:-5:]:
+            tensor.append(gd.tracks[uri].get_vector_rep(gd))
+        tensor = np.array(tensor)
+        return tf.reduce_sum(tensor, 0).numpy()
+
 
 def format_data(gd):
     filenames = os.listdir(os.getcwd())
     for filename in tqdm.tqdm(sorted(filenames, key=str)):
-        if filename.startswith("mpd.slice.") and filename.endswith(".json"):
+        if filename.startswith("mpd.slice.0") and filename.endswith(".json"):
             fullpath = os.sep.join((os.getcwd(), filename))
             f = open(fullpath)
             js = f.read()
@@ -82,26 +95,31 @@ def format_data(gd):
                 gd.add_playlist(playlist['pid'], Playlist(track_ids, gd))
 
 
+def compare_tracks(gd, model_result):
+    track_list = []
+    for id, track in gd.tracks.items():
+        cos_sim = dot(model_result, track.get_vector_rep(gd)) / \
+            (norm(model_result)*norm(track.get_vector_rep(gd)))
+        track_list.append((id, cos_sim))
+    track_list.sort(reverse=True, key=lambda x: x[1])
+    print(track_list[:10:])
+
+
 if __name__ == "__main__":
     gd = GlobalData()
     format_data(gd)
 
+    ####################################Represent##################################################
     features = []
     labels = []
     for key in gd.playlists.keys():
         for track in gd.playlists[key].tracks:
-            # if len(features) > 0:
-            #     features = np.append(features, gd.playlists[key].vector_rep)
-            # else:
-            #     features = gd.playlists[key].vector_rep
             features.append(gd.playlists[key].vector_rep)
             labels.append(gd.tracks[track].get_vector_rep(gd))
     features = np.array(features)
     labels = np.array(labels)
 
-    print(features)
-    print(labels)
-
+    #######################################Train###################################################
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(8),
         tf.keras.layers.Dense(4)
@@ -111,3 +129,18 @@ if __name__ == "__main__":
                   optimizer=tf.keras.optimizers.Adam())
 
     model.fit(features, labels, epochs=10)
+
+    model.save("model")
+
+    test_num = 0
+
+    #######################################Aggregate and Predict###################################################
+    for playlist in gd.playlists.keys():
+        if test_num < 10:
+            print('---------------', playlist, '-----------------------')
+            model_result = model.predict(
+                np.array(gd.playlists[playlist].get_test_vector(gd)).reshape((1, 4)))
+            compare_tracks(gd, model_result)
+            test_num += 1
+        else:
+            break
