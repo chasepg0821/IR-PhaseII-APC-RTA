@@ -1,3 +1,25 @@
+# Run OUR code
+
+## Installation
+
+### Data
+
+We used the same dataset as the authors the MPD dataset from Spotify
+
+Download the dataset from [AIcrowd.com](https://www.aicrowd.com/challenges/spotify-million-playlist-dataset-challenge).
+
+Unzip the files.
+
+### Code
+
+Import numpy, tensorflow, and tqdm.
+
+We used the latest versions of each
+
+From there you are able to simply run the file RTA-Project.py
+
+Ensure you run the file from within the directory containing all of the slices of data
+
 # Run the author's original code
 
 # A Scalable Framework for Automatic Playlist Continuation on Music Streaming Services
@@ -114,26 +136,3 @@ Please cite our paper if you use this code in your own work:
  year = {2023}
 }
 ```
-
-
-# Run OUR code
-
-## Installation
-
-### Data
-
-We used the same dataset as the authors the MPD dataset from Spotify
-
-Download the dataset from [AIcrowd.com](https://www.aicrowd.com/challenges/spotify-million-playlist-dataset-challenge).
-
-Unzip the files.
-
-### Code
-
-Import numpy, tensorflow, and tqdm.
-
-We used the latest versions of each
-
-From there you are able to simply run the file RTA-Project.py
-
-Ensure you run the file from within the directory containing all of the slices of data
