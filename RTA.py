@@ -40,14 +40,14 @@ class Track():
     def __init__(self, track_info):
         self.pop = 1.0
         self.dur = track_info['duration_ms'] / 1000.0
-        self.artist = track_info['artist_uri'].split(':')[2]
-        self.album = track_info['album_uri'].split(':')[2]
+        self.artist = track_info['artist_uri'].lstrip('spotify:artist:')
+        self.album = track_info['album_uri'].lstrip('spotify:album:')
 
     def add_count(self):
         self.pop += 1.0
 
     def get_vector_rep(self, gd):
-        return [self.pop, self.dur, gd.artists[self.artist]['id'], gd.albums[self.album]['id']]
+        return np.array([self.pop, self.dur, gd.artists[self.artist]['id'], gd.albums[self.album]['id']])
 
 
 class Playlist():
@@ -64,7 +64,7 @@ class Playlist():
 def format_data(gd):
     filenames = os.listdir(os.getcwd())
     for filename in tqdm.tqdm(sorted(filenames, key=str)):
-        if filename.startswith("mpd.slice.0") and filename.endswith(".json"):
+        if filename.startswith("mpd.slice.") and filename.endswith(".json"):
             fullpath = os.sep.join((os.getcwd(), filename))
             f = open(fullpath)
             js = f.read()
@@ -74,7 +74,7 @@ def format_data(gd):
                 track_ids = []
                 for track in playlist['tracks']:
                     trackObj = Track(track)
-                    t_uri = track['track_uri'].split(':')[2]
+                    t_uri = track['track_uri'].lstrip('spotify:track:')
                     gd.add_track(t_uri, trackObj)
                     gd.add_artist(trackObj.artist, track['artist_name'])
                     gd.add_album(trackObj.album, track['album_name'])
@@ -90,15 +90,17 @@ if __name__ == "__main__":
     labels = []
     for key in gd.playlists.keys():
         for track in gd.playlists[key].tracks:
-            if len(features) > 0:
-                features = np.append(features, gd.playlists[key].vector_rep)
-            else:
-                features = gd.playlists[key].vector_rep
-            labels = labels + gd.tracks[track].get_vector_rep(gd)
+            # if len(features) > 0:
+            #     features = np.append(features, gd.playlists[key].vector_rep)
+            # else:
+            #     features = gd.playlists[key].vector_rep
+            features.append(gd.playlists[key].vector_rep)
+            labels.append(gd.tracks[track].get_vector_rep(gd))
+    features = np.array(features)
     labels = np.array(labels)
 
-    features = np.reshape(features, (4, int(features.size / 4)))
-    labels = np.reshape(labels, (int(labels.size / 4), 4))
+    print(features)
+    print(labels)
 
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(8),
