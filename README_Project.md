@@ -2,7 +2,9 @@
 
 Our code includes this readme and RTA-Project.py.
 
-The MPD is also a part of our solution and will be submitted alongside the code.
+The MPD is also a part of our solution but made the submission too large and is not included.
+
+Instructions to download the dataset are included below.
 
 ## Installation
 
