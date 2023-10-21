@@ -1,5 +1,9 @@
 # Run OUR code
 
+Our code includes this readme and RTA-Project.py.
+
+The MPD is also a part of our solution and will be submitted alongside the code.
+
 ## Installation
 
 ### Data
