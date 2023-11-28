@@ -85,7 +85,7 @@ class RTAModel(torch.nn.Module):
         dev = get_device()
         n_p = len(test_dataloader.dataset)
         with torch.no_grad():
-        self.eval()
+          self.eval()
         recos = np.zeros((n_p, n_recos))
         current_batch = 0
         all_rep = self.representer.compute_all_representations()

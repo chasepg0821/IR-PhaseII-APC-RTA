@@ -19,6 +19,7 @@ from scipy.sparse import save_npz
 import csv
 import tqdm
 import pickle
+import pandas
 from collections import defaultdict
 import argparse
 from src.embeddings.model import MatrixFactorizationModel
@@ -47,6 +48,7 @@ num_followers_histogram = collections.Counter()
 playlists_list = []
 quick = False
 max_files_for_quick_processing = 2
+mood_dataset = pandas.read_csv("resources/data_moods.csv", usecols=['id', 'energy', 'valence'], index_col='id')
 
 
 def process_mpd(raw_path, out_path):
@@ -164,6 +166,12 @@ def process_playlist(playlist):
         unique_track_count += 1
         tracks_info[full_name]["id"] = unique_track_count - 1
         tracks_info[full_name]["count"] = 1
+        if full_name in mood_dataset.index:
+           tracks_info[full_name]["energy"] = mood_dataset.loc[full_name]["energy"]
+           tracks_info[full_name]["valence"] = mood_dataset.loc[full_name]["valence"]
+        else:
+           tracks_info[full_name]["energy"] = 0.5
+           tracks_info[full_name]["valence"] = 0.5
       elif playlist_track[playlist_id, tracks_info[full_name]["id"]] != 0 :
         # remove tracks that are already earlier in the playlist
         continue

@@ -73,9 +73,11 @@ class DataManager():
 
     self.song_album = np.load("%s/rta_input/song_album.npy" % self.foldername)
     self.song_artist = np.load("%s/rta_input/song_artist.npy" % self.foldername)
-    song_infos_sorted = sorted([(info['id'], info['count'], info['duration_ms']) for info in self.tracks_info.values()])
+    song_infos_sorted = sorted([(info['id'], info['count'], info['duration_ms'], info['energy'], info['valence']) for info in self.tracks_info.values()])
     self.song_pop = [c[1] for c in song_infos_sorted]
     self.song_duration = [c[2] for c in song_infos_sorted]
+    self.song_energy = [c[3] for c in song_infos_sorted]
+    self.song_valence = [c[4] for c in song_infos_sorted]
 
     with open("%s/rta_input/album_ids.pkl" % self.foldername, 'rb+') as f:
       self.album_ids = pickle.load(f)

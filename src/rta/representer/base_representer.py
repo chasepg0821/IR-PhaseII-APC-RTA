@@ -52,6 +52,16 @@ class BaseEmbeddingRepresenter(nn.Module):
         self.song_dur.require_grad = False
         self.dur_embedding = nn.Embedding.from_pretrained(torch.tensor(np.load(data_manager.dur_embeddings_path)[:,:emb_dim]), freeze=False).float()
 
+        self.song_energy = np.zeros(n_tokens)
+        self.song_energy[1:n_tokens-1] = data_manager.song_energy # each energy is offset because of PAD
+        self.song_energy = torch.LongTensor(self.song_energy).to(self.dev)
+        self.song_energy.require_grad = False
+
+        self.song_valence = np.zeros(n_tokens)
+        self.song_valence[1:n_tokens-1] = data_manager.song_valence # each valence is offset because of PAD
+        self.song_valence = torch.LongTensor(self.song_valence).to(self.dev)
+        self.song_valence.require_grad = False
+
     def forward(self, x):
       return self.embedding(x)
 
